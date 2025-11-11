@@ -21,12 +21,16 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Run tests
-        run: mvn test --batch-mode
-        env:
-          MAVEN_OPTS: "-Xmx2048m"
+      - name: Display Java version
+        run: java -version
 
-      - name: Upload videos
+      - name: Run tests with debug
+        run: mvn test -X
+        env:
+          CI: true
+
+
+      - name: Upload test videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
