@@ -7,29 +7,23 @@ on:
     branches: [ main ]
 
 jobs:
-  ui-test:
+  test:
     runs-on: ubuntu-22.04
     timeout-minutes: 15
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
           cache: maven
 
-      # -------------------------------------------------
-      # 1. Enable universe repo + install Chromium deps
-      # -------------------------------------------------
-      - name: Install Chromium system dependencies
+      - name: Install system dependencies
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository universe -y
           sudo apt-get update -qq
           sudo apt-get install -y \
             ca-certificates \
@@ -63,32 +57,19 @@ jobs:
             libxrender1 \
             libxss1 \
             libxtst6 \
-            lsb-release \
             wget \
-            xdg-utils \
-            libx264-155 \
-            ffmpeg
+            xdg-utils
 
-      # -------------------------------------------------
-      # 2. Install only Chromium (skip install-deps)
-      # -------------------------------------------------
       - name: Install Playwright Chromium
         run: |
-          mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI \
-            -Dexec.args="install chromium"
+          mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install chromium"
 
-      # -------------------------------------------------
-      # 3. Run tests (headless)
-      # -------------------------------------------------
-      - name: Run Playwright tests
+      - name: Run tests
         env:
           HEADLESS: true
         run: |
           mvn -B -Dheadless=${HEADLESS} clean verify
 
-      # -------------------------------------------------
-      # 4. Upload artifacts
-      # -------------------------------------------------
       - name: Upload videos
         if: always()
         uses: actions/upload-artifact@v4
